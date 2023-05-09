@@ -16,7 +16,8 @@ from PIL import Image
 
 def download_image_from_url(image_url, dir_path, request_pause):
     """
-    Downloads an image from an url and stores it as a file.
+   Downloads an image from an url and stores it as a file.
+   This function is adapted from Digital Heraldry.
     """
     
     print(f'Downloading image from {image_url}')
