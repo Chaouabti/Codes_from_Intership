@@ -103,8 +103,8 @@ def load_data_from_files(file_paths):
                 data_list.append(line.strip())
     return data_list
 
-directory_results = '/Users/marioncharpier/Documents/ENC/UE7-Stage/train_group_7/Statistics/train_group_7_results_100e/Comparaison/valtest'
-output_file = os.path.join(directory_results,'results.txt')   # Nom du fichier de sortie
+directory_results = ''
+output_file = os.path.join(directory_results,'results_for_graphics.csv')   # Nom du fichier de sortie
 
 # Get annotation files
 img_ann_dir = os.path.join(directory_results, 'labels_ann')
@@ -116,7 +116,11 @@ img_pred_dir = os.path.join(directory_results, 'labels_pred')
 pred_files = glob.glob(os.path.join(img_pred_dir, '*.txt'))
 predictions = load_data_from_files(pred_files)
 
-with open(output_file, 'w') as f:
+with open(output_file, 'w', newline='') as csvfile:
+    fieldnames = ['Filename', 'Box_coordinates', 'TP/FP/FN', 'classe', 'Matched_boxes', 'IoU']  # Ajout des nouvelles colonnes
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+
     for ann_file in ann_files:
         ann_file_name = os.path.basename(ann_file)
         matching_pred_files = [pred_file for pred_file in pred_files if os.path.basename(pred_file) == ann_file_name]
@@ -125,21 +129,22 @@ with open(output_file, 'w') as f:
             predictions = load_data_from_files(matching_pred_files)
 
             matched_annotations, matched_predictions, false_positives, false_negatives = match_boxes(annotations, predictions, threshold=0.5)
-            
-            f.write(f"\nDans les fichiers {os.path.basename(ann_file)} :")
 
-            f.write("\nBoîtes d'annotation correspondantes :\n")
             for annotation, prediction in zip(matched_annotations, matched_predictions):
                 iou = calculate_iou([float(coord) for coord in annotation.split(" ")], [float(coord) for coord in prediction.split(" ")])
-                f.write(f"Les Boîtes d'annotation et prédiction correspondantes sont {annotation} et {prediction}, iou = {iou}\n")
+                box_coordinates = ' '.join(annotation.split(" "))
 
-            f.write("\nFaux positifs :\n")
-            for false_positive in false_positives:
-                f.write(false_positive)
+                writer.writerow({'Filename': os.path.basename(ann_file), 'Box_coordinates': box_coordinates, 'TP/FP/FN': 'TP', 'classe': get_class_name(annotation[0]), 'Matched_boxes': prediction, 'IoU': iou})
 
-            f.write("\nFaux négatifs :\n")
-            for false_negative in false_negatives:
-                f.write(false_negative)
+            if len(false_positives) != 0:
+                for false_positive in false_positives:
+                    writer.writerow({'Filename': os.path.basename(ann_file), 'Box_coordinates': false_positive, 'TP/FP/FN': 'FP', 'classe': get_class_name(false_positive[0]), 'Matched_boxes': '', 'IoU': ''})
+
+            if len(false_negatives) != 0:
+                for false_negative in false_negatives:
+                    writer.writerow({'Filename': os.path.basename(ann_file), 'Box_coordinates': false_negative, 'TP/FP/FN': 'FN', 'classe': get_class_name(false_negative[0]), 'Matched_boxes': '', 'IoU': ''})
+
+
 
 # Afficher un message lorsque l'écriture dans le fichier est terminée
 print("Les résultats ont été enregistrés dans le fichier", output_file)
