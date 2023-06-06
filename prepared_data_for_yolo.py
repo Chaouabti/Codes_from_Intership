@@ -50,7 +50,6 @@ def create_txt_train_val_test(folder):
     # Create a file with all the dataset
     with open(os.path.join(folder, "train_dataset.txt"), "w") as f:
         for image_file in image_files:
-            if image_file not in train_files:
                 f.write(os.path.join(folder, image_file) + "\n")
 
 
