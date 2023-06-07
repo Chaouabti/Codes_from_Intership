@@ -10,6 +10,23 @@ import os
 import shutil
 import random
 
+# This function cleans up the .txt file in the csv file to remove commas
+def clean_comma(folder):
+    for filename in os.listdir(folder):
+        if filename.endswith('.txt'):
+            file_path = os.path.join(folder, filename)
+            
+            # Read the file content
+            with open(file_path, 'r') as file:
+                content = file.read()
+            
+            # Remove commas
+            content_without_comma = content.replace(',', '')
+            
+            # Write the modified content in the file
+            with open(file_path, 'w') as file:
+                file.write(content_without_comma)
+                
 # This function create three files one for each set : train, val and test
 def create_txt_train_val_test(folder):
     # Get a list of the images
